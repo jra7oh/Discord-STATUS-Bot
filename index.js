@@ -56,3 +56,17 @@ client.once('ready', () => {
 });
 
 client.login(process.env.BOT_TOKEN);
+
+// --- Express server for uptime robot ---
+const express = require('express');
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('Bot is running!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Webserver running on port ${PORT}`);
+});
