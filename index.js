@@ -33,13 +33,13 @@ async function updateStatus() {
       await botMember.setNickname('69 STATUS');
     }
 
-    // Set custom status to "Online: X"
+    // Set custom status to "Playing /Online: X"
     await client.user.setPresence({
-      activities: [{ name: `Online: ${onlineCount}`, type: 0 }], // type 0 = Playing
+      activities: [{ name: `/Online: ${onlineCount}`, type: 0 }], // type 0 = Playing
       status: 'online',
     });
 
-    console.log(`Status updated: Online: ${onlineCount}`);
+    console.log(`Status updated: /Online: ${onlineCount}`);
   } catch (error) {
     console.error('Error updating status:', error);
   }
