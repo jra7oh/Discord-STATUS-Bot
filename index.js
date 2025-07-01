@@ -1,102 +1,72 @@
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
 require('dotenv').config();
-const { Client, GatewayIntentBits, Routes, SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { REST } = require('@discordjs/rest');
-const express = require('express');
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildMembers,
+  ],
+  partials: [Partials.GuildMember],
 });
 
-const TOKEN = process.env.DISCORD_TOKEN;
-const CLIENT_ID = '1389383683361996800'; // your bot's client ID
-const GUILD_ID = '1386044830290804938';  // your server ID
-const OWNER_ID = '849685727721422858';   // your Discord ID
+const SERVER_ID = '1386044830290804938'; // Your server ID
 
-// Slash command setup
-const commands = [
-  new SlashCommandBuilder()
-    .setName('say')
-    .setDescription('Send a message to a channel with optional file or gif')
-    .addStringOption(option =>
-      option.setName('content')
-        .setDescription('📝 The content of the message you want to send.')
-        .setRequired(false))
-    .addChannelOption(option =>
-      option.setName('channel')
-        .setDescription('📍 The channel where you want to send the message.')
-        .setRequired(false))
-    .addAttachmentOption(option =>
-      option.setName('file')
-        .setDescription('📎 A file you want to attach (image/video).')
-        .setRequired(false))
-    .addStringOption(option =>
-      option.setName('gif')
-        .setDescription('🎞️ A GIF link to include.')
-        .setRequired(false))
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-].map(cmd => cmd.toJSON());
-
-const rest = new REST({ version: '10' }).setToken(TOKEN);
-
-// Register slash commands
-(async () => {
+async function updateStatus() {
   try {
-    console.log('Registering slash commands...');
-    await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: commands }
-    );
-    console.log('✅ Commands registered!');
+    const guild = await client.guilds.fetch(SERVER_ID);
+    if (!guild) {
+      console.error('Guild not found');
+      return;
+    }
+
+    await guild.members.fetch(); // Fetch all members
+
+    // Count online members (excluding offline)
+    const onlineCount = guild.members.cache.filter(
+      member => member.presence?.status !== 'offline' && !member.user.bot
+    ).size;
+
+    // Set bot nickname to "69 | STATUS"
+    const botMember = guild.members.cache.get(client.user.id);
+    if (botMember) {
+      await botMember.setNickname('69 | STATUS');
+    }
+
+    // Set custom status to "Playing | Online: X"
+    await client.user.setPresence({
+      activities: [{ name: `| Online: ${onlineCount}`, type: 0 }], // type 0 = Playing
+      status: 'online',
+    });
+
+    console.log(`Status updated: | Online: ${onlineCount}`);
   } catch (error) {
-    console.error('Error registering commands:', error);
+    console.error('Error updating status:', error);
   }
-})();
+}
 
 client.once('ready', () => {
-  console.log(`🤖 Logged in as ${client.user.tag}`);
+  console.log(`Logged in as ${client.user.tag}`);
+
+  // Initial status update
+  updateStatus();
+
+  // Update every 30 seconds
+  setInterval(updateStatus, 30 * 1000);
 });
 
-client.on('interactionCreate', async interaction => {
-  if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName !== 'say') return;
+client.login(process.env.BOT_TOKEN);
 
-  const content = interaction.options.getString('content') || '';
-  const channel = interaction.options.getChannel('channel') || interaction.channel;
-  const file = interaction.options.getAttachment('file');
-  const gif = interaction.options.getString('gif');
-
-  const messageOptions = {};
-  if (content) messageOptions.content = content;
-  if (file) messageOptions.files = [file.url];
-  if (gif) messageOptions.content = (messageOptions.content || '') + `\n${gif}`;
-
-  try {
-    await channel.send(messageOptions);
-    await interaction.reply({ content: `✅ Message sent in ${channel}`, ephemeral: true });
-
-    // DM owner with simple format
-    const ownerUser = await client.users.fetch(OWNER_ID);
-    const userTag = interaction.user.tag;
-    const channelName = channel.name || 'unknown';
-
-    await ownerUser.send(
-      `User ${userTag} used /say in #${channelName} with content: "${content || 'None'}"`
-    );
-  } catch (error) {
-    console.error('Failed to send message or DM:', error);
-    if (!interaction.replied) {
-      await interaction.reply({ content: '❌ Failed to send the message.', ephemeral: true });
-    }
-  }
-});
-
-client.login(TOKEN);
-
-// Express server for uptime (Render + UptimeRobot)
+// --- Express server for uptime robot ---
+const express = require('express');
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => res.send('Bot is running!'));
+app.get('/', (req, res) => {
+  res.send('Bot is running!');
+});
+
 app.listen(PORT, () => {
-  console.log(`🌐 Web server running on port ${PORT}`);
+  console.log(`Webserver running on port ${PORT}`);
 });
