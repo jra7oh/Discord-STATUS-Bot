@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for discord-status-bot-orhrnw on 2025-07-20T19:29:44Z
+# fly.toml app configuration file generated for discord-status-bot-bhqslg on 2025-07-20T19:46:52Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'discord-status-bot-orhrnw'
+app = 'discord-status-bot-bhqslg'
 primary_region = 'sin'
 
 [build]
