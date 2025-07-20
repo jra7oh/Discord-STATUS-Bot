@@ -1,9 +1,0 @@
-app = "status-botss"
-
-[env]
-  # If your bot expects PORT env var, set it here (optional)
-  PORT = "3000"
-
-[[services]]
-  internal_port = 3000
-  protocol = "tcp"
