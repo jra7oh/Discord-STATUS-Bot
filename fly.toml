@@ -1,30 +1,9 @@
 app = "status-botss"
 
-[build]
-  # optional if you use Dockerfile; you can remove this if you have one
-  # builder = "heroku/buildpacks:20"
-
 [env]
+  # If your bot expects PORT env var, set it here (optional)
   PORT = "3000"
-
-[experimental]
-  allowed_public_ports = [3000]
-  auto_rollback = true
 
 [[services]]
   internal_port = 3000
   protocol = "tcp"
-
-  [[services.ports]]
-    port = 80
-    handlers = ["http"]
-
-  [[services.ports]]
-    port = 443
-    handlers = ["tls", "http"]
-
-  [[services.tcp_checks]]
-    interval = 10000
-    timeout = 2000
-    grace_period = "5s"
-    restart_limit = 6
