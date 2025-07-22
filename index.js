@@ -22,33 +22,27 @@ async function updateStatus() {
 
     await guild.members.fetch(); // Fetch all members
 
-    // Debug logs
-    const membersWithPresence = guild.members.cache.filter(m => m.presence).size;
-    const onlineCount = guild.members.cache.filter(
+    // ✅ Count ONLY online (green) users, not idle or dnd
+    const onlineOnlyCount = guild.members.cache.filter(
       member =>
-        member.presence && // ✅ ensure presence exists
-        member.presence.status !== 'offline' &&
-        !member.user.bot
+        member.presence?.status === 'online' && !member.user.bot
     ).size;
 
-    console.log(`Guild total members: ${guild.memberCount}`);
-    console.log(`Fetched members: ${guild.members.cache.size}`);
-    console.log(`Members with presence: ${membersWithPresence}`);
-    console.log(`Online members (not offline): ${onlineCount}`);
+    console.log(`Online users (green dot only): ${onlineOnlyCount}`);
 
-    // Set bot nickname to "STATUS"
+    // ✅ Update bot nickname
     const botMember = guild.members.cache.get(client.user.id);
     if (botMember) {
       await botMember.setNickname('STATUS');
     }
 
-    // Set custom status to "Playing | Online: X"
+    // ✅ Update bot status
     await client.user.setPresence({
-      activities: [{ name: `| Online: ${onlineCount}`, type: 0 }], // type 0 = Playing
+      activities: [{ name: `| Online: ${onlineOnlyCount}`, type: 0 }],
       status: 'online',
     });
 
-    console.log(`Status updated: | Online: ${onlineCount}`);
+    console.log(`Status updated: | Online: ${onlineOnlyCount}`);
   } catch (error) {
     console.error('Error updating status:', error);
   }
@@ -56,12 +50,8 @@ async function updateStatus() {
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
-
-  // Initial status update
   updateStatus();
-
-  // Update every 30 seconds
-  setInterval(updateStatus, 30 * 1000);
+  setInterval(updateStatus, 30 * 1000); // Update every 30 seconds
 });
 
 client.login(process.env.BOT_TOKEN);
@@ -69,7 +59,6 @@ client.login(process.env.BOT_TOKEN);
 // --- Express server for uptime robot ---
 const express = require('express');
 const app = express();
-
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
