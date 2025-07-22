@@ -22,12 +22,18 @@ async function updateStatus() {
 
     await guild.members.fetch(); // Fetch all members
 
-    // Count online members (excluding offline)
+    // Debug logs
+    const membersWithPresence = guild.members.cache.filter(m => m.presence).size;
     const onlineCount = guild.members.cache.filter(
       member => member.presence?.status !== 'offline' && !member.user.bot
     ).size;
 
-    // Set bot nickname to "69 | STATUS"
+    console.log(`Guild total members: ${guild.memberCount}`);
+    console.log(`Fetched members: ${guild.members.cache.size}`);
+    console.log(`Members with presence: ${membersWithPresence}`);
+    console.log(`Online members (not offline): ${onlineCount}`);
+
+    // Set bot nickname to "STATUS"
     const botMember = guild.members.cache.get(client.user.id);
     if (botMember) {
       await botMember.setNickname('STATUS');
