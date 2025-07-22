@@ -1,4 +1,5 @@
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const express = require('express');
 require('dotenv').config();
 
 const client = new Client({
@@ -10,11 +11,12 @@ const client = new Client({
   partials: [Partials.GuildMember],
 });
 
-const SERVER_ID = '1386044830290804938'; // Your server ID
-
 async function getOnlineCount() {
   try {
-    const guild = await client.guilds.fetch(SERVER_ID);
+    // Get the first guild the bot is in (adjust if needed)
+    const guild = client.guilds.cache.first();
+    if (!guild) return 0;
+
     await guild.members.fetch();
 
     const onlineCount = guild.members.cache.filter(member =>
@@ -30,30 +32,26 @@ async function getOnlineCount() {
 
 async function updateStatus() {
   try {
-    const botMember = (await client.guilds.fetch(SERVER_ID)).members.cache.get(client.user.id);
-    if (botMember) await botMember.setNickname('STATUS');
-
     let toggle = false;
 
     setInterval(async () => {
       const onlineCount = await getOnlineCount();
 
       if (toggle) {
-        // Watching | Online: X !
+        // Status: Watching - Online: X !
         await client.user.setPresence({
-          activities: [{ name: `Watching | Online: ${onlineCount} !`, type: 3 }],
+          activities: [{ name: `Watching - Online: ${onlineCount} !`, type: 3 }], // Watching
           status: 'online',
         });
       } else {
-        // Streaming Designed By Y8LBI !
+        // Status: Streaming - Designed By Y8LBI !
         await client.user.setPresence({
-          activities: [{ name: `Designed By Y8LBI !`, type: 4, url: 'https://twitch.tv/Y8LBI' }],
+          activities: [{ name: `Streaming - Designed By Y8LBI !`, type: 3 }], // Streaming
           status: 'online',
         });
       }
-
       toggle = !toggle;
-    }, 5000); // Switch every 5 seconds
+    }, 5000);
   } catch (error) {
     console.error('Error updating status:', error);
   }
@@ -61,7 +59,20 @@ async function updateStatus() {
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
+
   setTimeout(updateStatus, 2000);
 });
 
 client.login(process.env.BOT_TOKEN);
+
+// EXPRESS SERVER FOR PORT BINDING
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('Bot is running!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Webserver running on port ${PORT}`);
+});
