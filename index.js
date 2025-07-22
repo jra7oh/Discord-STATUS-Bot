@@ -11,7 +11,7 @@ const client = new Client({
   partials: [Partials.GuildMember],
 });
 
-// ---- Webserver for Uptime Robot ----
+// --- Web server for UptimeRobot ---
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -20,10 +20,10 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Webserver running on port ${PORT}`);
+  console.log(`Web server running on port ${PORT}`);
 });
 
-// ---- Get online members (not offline) ----
+// --- Get real online member count (including bots) ---
 async function getOnlineCount() {
   try {
     const guild = client.guilds.cache.first();
@@ -31,45 +31,51 @@ async function getOnlineCount() {
 
     await guild.members.fetch();
 
-    const onlineCount = guild.members.cache.filter(member =>
-      member.presence?.status && member.presence.status !== 'offline'
+    const onlineCount = guild.members.cache.filter(
+      (member) => member.presence?.status && member.presence.status !== 'offline'
     ).size;
 
     return onlineCount;
-  } catch (error) {
-    console.error('Error fetching online count:', error);
+  } catch (err) {
+    console.error('Error getting online count:', err);
     return 0;
   }
 }
 
-// ---- Bot status updater ----
+// --- Update bot status ---
 async function updateStatus() {
-  try {
-    let toggle = false;
+  let toggle = false;
 
-    setInterval(async () => {
-      const onlineCount = await getOnlineCount();
+  setInterval(async () => {
+    const online = await getOnlineCount();
 
-      if (toggle) {
-        await client.user.setPresence({
-          activities: [{ name: `Online: ${onlineCount} !`, type: 3 }], // Type 3 = Watching
-          status: 'online',
-        });
-      } else {
-        await client.user.setPresence({
-          activities: [{ name: `Designed By Y8LBI !`, type: 0 }], // Type 0 = Playing (but you control the text)
-          status: 'online',
-        });
-      }
+    if (toggle) {
+      await client.user.setPresence({
+        activities: [
+          {
+            name: `Online: ${online} !`, // <-- Just the count
+            type: 3, // Watching
+          },
+        ],
+        status: 'online',
+      });
+    } else {
+      await client.user.setPresence({
+        activities: [
+          {
+            name: `STREAMING By Y8LBI !`, // <-- Custom streaming message
+            type: 1, // Streaming
+            url: 'https://twitch.tv/discord', // Required for type 1
+          },
+        ],
+        status: 'online',
+      });
+    }
 
-      toggle = !toggle;
-    }, 5000); // Update every 5 seconds
-  } catch (error) {
-    console.error('Error updating status:', error);
-  }
+    toggle = !toggle;
+  }, 5000);
 }
 
-// ---- When bot is ready ----
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
   setTimeout(updateStatus, 2000);
