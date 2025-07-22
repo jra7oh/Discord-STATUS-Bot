@@ -12,29 +12,47 @@ const client = new Client({
 
 const SERVER_ID = '1386044830290804938'; // Your server ID
 
-async function updateStatus() {
+async function getOnlineCount() {
   try {
     const guild = await client.guilds.fetch(SERVER_ID);
-    await guild.members.fetch(); // Fetch all members to cache
+    await guild.members.fetch();
 
-    // Count all members (bots + users) whose presence status is not offline
-    const onlineCount = guild.members.cache.filter(member => 
+    const onlineCount = guild.members.cache.filter(member =>
       member.presence?.status && member.presence.status !== 'offline'
     ).size;
 
-    // Set bot nickname to "STATUS"
-    const botMember = guild.members.cache.get(client.user.id);
-    if (botMember) {
-      await botMember.setNickname('STATUS');
-    }
+    return onlineCount;
+  } catch (error) {
+    console.error('Error fetching online count:', error);
+    return 0;
+  }
+}
 
-    // Set bot presence status with the count
-    await client.user.setPresence({
-      activities: [{ name: `| Online: ${onlineCount}`, type: 0 }], // Playing
-      status: 'online',
-    });
+async function updateStatus() {
+  try {
+    const botMember = (await client.guilds.fetch(SERVER_ID)).members.cache.get(client.user.id);
+    if (botMember) await botMember.setNickname('STATUS');
 
-    console.log(`Status updated: | Online: ${onlineCount}`);
+    let toggle = false;
+
+    setInterval(async () => {
+      const onlineCount = await getOnlineCount();
+
+      if (toggle) {
+        // Status: Watching | Online: X
+        await client.user.setPresence({
+          activities: [{ name: `Watching | Online: ${onlineCount}`, type: 3 }], // 3 = Watching
+          status: 'online',
+        });
+      } else {
+        // Status: Designed By Y8LBI
+        await client.user.setPresence({
+          activities: [{ name: `Designed By Y8LBI`, type: 0 }], // 0 = Playing
+          status: 'online',
+        });
+      }
+      toggle = !toggle;
+    }, 5000); // Switch every 5 seconds
   } catch (error) {
     console.error('Error updating status:', error);
   }
@@ -43,8 +61,7 @@ async function updateStatus() {
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
 
-  updateStatus();
-  setInterval(updateStatus, 30 * 1000);
+  setTimeout(updateStatus, 2000);
 });
 
 client.login(process.env.BOT_TOKEN);
