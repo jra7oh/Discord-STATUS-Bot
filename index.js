@@ -39,18 +39,19 @@ async function updateStatus() {
       const onlineCount = await getOnlineCount();
 
       if (toggle) {
-        // Status: Watching | Online: X !
+        // Watching | Online: X !
         await client.user.setPresence({
-          activities: [{ name: `Watching | Online: ${onlineCount} !`, type: 3 }], // Watching
+          activities: [{ name: `Watching | Online: ${onlineCount} !`, type: 3 }],
           status: 'online',
         });
       } else {
-        // Status: Designed By Y8LBI !
+        // Streaming Designed By Y8LBI !
         await client.user.setPresence({
-          activities: [{ name: `Designed By Y8LBI !`, type: 0 }], // Playing
+          activities: [{ name: `Designed By Y8LBI !`, type: 4, url: 'https://twitch.tv/Y8LBI' }],
           status: 'online',
         });
       }
+
       toggle = !toggle;
     }, 5000); // Switch every 5 seconds
   } catch (error) {
@@ -60,7 +61,6 @@ async function updateStatus() {
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
-
   setTimeout(updateStatus, 2000);
 });
 
