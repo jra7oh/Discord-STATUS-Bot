@@ -11,9 +11,21 @@ const client = new Client({
   partials: [Partials.GuildMember],
 });
 
+// ---- Webserver for Uptime Robot ----
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('Bot is running!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Webserver running on port ${PORT}`);
+});
+
+// ---- Get online members (not offline) ----
 async function getOnlineCount() {
   try {
-    // Get the first guild the bot is in (adjust if needed)
     const guild = client.guilds.cache.first();
     if (!guild) return 0;
 
@@ -30,6 +42,7 @@ async function getOnlineCount() {
   }
 }
 
+// ---- Bot status updater ----
 async function updateStatus() {
   try {
     let toggle = false;
@@ -38,41 +51,28 @@ async function updateStatus() {
       const onlineCount = await getOnlineCount();
 
       if (toggle) {
-        // Status: Watching - Online: X !
         await client.user.setPresence({
-          activities: [{ name: `Watching - Online: ${onlineCount} !`, type: 3 }], // Watching
+          activities: [{ name: `Online: ${onlineCount} !`, type: 3 }], // Type 3 = Watching
           status: 'online',
         });
       } else {
-        // Status: Streaming - Designed By Y8LBI !
         await client.user.setPresence({
-          activities: [{ name: `Streaming - Designed By Y8LBI !`, type: 3 }], // Streaming
+          activities: [{ name: `Designed By Y8LBI !`, type: 0 }], // Type 0 = Playing (but you control the text)
           status: 'online',
         });
       }
+
       toggle = !toggle;
-    }, 5000);
+    }, 5000); // Update every 5 seconds
   } catch (error) {
     console.error('Error updating status:', error);
   }
 }
 
+// ---- When bot is ready ----
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
-
   setTimeout(updateStatus, 2000);
 });
 
 client.login(process.env.BOT_TOKEN);
-
-// EXPRESS SERVER FOR PORT BINDING
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.get('/', (req, res) => {
-  res.send('Bot is running!');
-});
-
-app.listen(PORT, () => {
-  console.log(`Webserver running on port ${PORT}`);
-});
