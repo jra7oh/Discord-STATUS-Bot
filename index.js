@@ -20,28 +20,29 @@ async function updateStatus() {
       return;
     }
 
-    // Fetch all members to get updated presence info
     await guild.members.fetch();
 
-    // Count online members: presence exists, status not offline, and not bots
+    const membersWithPresence = guild.members.cache.filter(m => m.presence).size;
     const onlineCount = guild.members.cache.filter(
-      member =>
-        member.presence &&
-        member.presence.status !== 'offline' &&
-        !member.user.bot
+      member => member.presence && member.presence.status !== 'offline' && !member.user.bot
     ).size;
 
-    console.log(`Online members (not offline): ${onlineCount}`);
+    console.log(`Members with presence: ${membersWithPresence}`);
+    console.log(`Guild total members: ${guild.memberCount}`);
 
-    // Change bot's nickname to "STATUS"
+    // Only update status if presence data covers >= 30% of members
+    if (membersWithPresence / guild.memberCount < 0.3) {
+      console.log('Presence data incomplete, skipping update');
+      return;
+    }
+
     const botMember = guild.members.cache.get(client.user.id);
     if (botMember) {
       await botMember.setNickname('STATUS');
     }
 
-    // Set bot presence: Playing | Online: X
     await client.user.setPresence({
-      activities: [{ name: `| Online: ${onlineCount}`, type: 0 }], // type 0 = Playing
+      activities: [{ name: `| Online: ${onlineCount}`, type: 0 }],
       status: 'online',
     });
 
@@ -54,10 +55,7 @@ async function updateStatus() {
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
 
-  // Initial update
   updateStatus();
-
-  // Update every 30 seconds
   setInterval(updateStatus, 30 * 1000);
 });
 
