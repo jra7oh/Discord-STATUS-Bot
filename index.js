@@ -4,8 +4,6 @@ require('dotenv').config();
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildPresences,
-    GatewayIntentBits.GuildMembers,
   ],
   partials: [Partials.GuildMember],
 });
@@ -14,27 +12,15 @@ const SERVER_ID = '1386044830290804938'; // Your server ID
 
 async function updateStatus() {
   try {
-    const guild = await client.guilds.fetch(SERVER_ID);
+    const guild = await client.guilds.fetch(SERVER_ID, { withCounts: true });
     if (!guild) {
       console.error('Guild not found');
       return;
     }
 
-    await guild.members.fetch();
+    const onlineCount = guild.approximatePresenceCount ?? 0;
 
-    const membersWithPresence = guild.members.cache.filter(m => m.presence).size;
-    const onlineCount = guild.members.cache.filter(
-      member => member.presence && member.presence.status !== 'offline' && !member.user.bot
-    ).size;
-
-    console.log(`Members with presence: ${membersWithPresence}`);
-    console.log(`Guild total members: ${guild.memberCount}`);
-
-    // Only update status if presence data covers >= 30% of members
-    if (membersWithPresence / guild.memberCount < 0.3) {
-      console.log('Presence data incomplete, skipping update');
-      return;
-    }
+    console.log(`Approximate online members: ${onlineCount}`);
 
     const botMember = guild.members.cache.get(client.user.id);
     if (botMember) {
@@ -54,7 +40,6 @@ async function updateStatus() {
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
-
   updateStatus();
   setInterval(updateStatus, 30 * 1000);
 });
