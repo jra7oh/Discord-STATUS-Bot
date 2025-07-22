@@ -25,7 +25,10 @@ async function updateStatus() {
     // Debug logs
     const membersWithPresence = guild.members.cache.filter(m => m.presence).size;
     const onlineCount = guild.members.cache.filter(
-      member => member.presence?.status !== 'offline' && !member.user.bot
+      member =>
+        member.presence && // ✅ ensure presence exists
+        member.presence.status !== 'offline' &&
+        !member.user.bot
     ).size;
 
     console.log(`Guild total members: ${guild.memberCount}`);
