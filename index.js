@@ -63,7 +63,7 @@ async function updateStatus() {
       await client.user.setPresence({
         activities: [
           {
-            name: `STREAMING By Y8LBI !`, // <-- Custom streaming message
+            name: `By Y8LBI !`, // <-- Custom streaming message
             type: 1, // Streaming
             url: 'https://twitch.tv/discord', // Required for type 1
           },
