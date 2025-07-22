@@ -39,15 +39,15 @@ async function updateStatus() {
       const onlineCount = await getOnlineCount();
 
       if (toggle) {
-        // Status: Watching | Online: X
+        // Status: Watching | Online: X !
         await client.user.setPresence({
-          activities: [{ name: `Watching | Online: ${onlineCount}`, type: 3 }], // 3 = Watching
+          activities: [{ name: `Watching | Online: ${onlineCount} !`, type: 3 }], // Watching
           status: 'online',
         });
       } else {
-        // Status: Designed By Y8LBI
+        // Status: Designed By Y8LBI !
         await client.user.setPresence({
-          activities: [{ name: `Designed By Y8LBI`, type: 0 }], // 0 = Playing
+          activities: [{ name: `Designed By Y8LBI !`, type: 0 }], // Playing
           status: 'online',
         });
       }
