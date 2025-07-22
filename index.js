@@ -20,29 +20,32 @@ async function updateStatus() {
       return;
     }
 
-    await guild.members.fetch(); // Fetch all members
+    // Fetch all members to get updated presence info
+    await guild.members.fetch();
 
-    // ✅ Count ONLY online (green) users, not idle or dnd
-    const onlineOnlyCount = guild.members.cache.filter(
+    // Count online members: presence exists, status not offline, and not bots
+    const onlineCount = guild.members.cache.filter(
       member =>
-        member.presence?.status === 'online' && !member.user.bot
+        member.presence &&
+        member.presence.status !== 'offline' &&
+        !member.user.bot
     ).size;
 
-    console.log(`Online users (green dot only): ${onlineOnlyCount}`);
+    console.log(`Online members (not offline): ${onlineCount}`);
 
-    // ✅ Update bot nickname
+    // Change bot's nickname to "STATUS"
     const botMember = guild.members.cache.get(client.user.id);
     if (botMember) {
       await botMember.setNickname('STATUS');
     }
 
-    // ✅ Update bot status
+    // Set bot presence: Playing | Online: X
     await client.user.setPresence({
-      activities: [{ name: `| Online: ${onlineOnlyCount}`, type: 0 }],
+      activities: [{ name: `| Online: ${onlineCount}`, type: 0 }], // type 0 = Playing
       status: 'online',
     });
 
-    console.log(`Status updated: | Online: ${onlineOnlyCount}`);
+    console.log(`Status updated: | Online: ${onlineCount}`);
   } catch (error) {
     console.error('Error updating status:', error);
   }
@@ -50,15 +53,20 @@ async function updateStatus() {
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
+
+  // Initial update
   updateStatus();
-  setInterval(updateStatus, 30 * 1000); // Update every 30 seconds
+
+  // Update every 30 seconds
+  setInterval(updateStatus, 30 * 1000);
 });
 
 client.login(process.env.BOT_TOKEN);
 
-// --- Express server for uptime robot ---
+// Express server for uptime monitoring
 const express = require('express');
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
