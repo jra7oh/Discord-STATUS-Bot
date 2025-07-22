@@ -30,7 +30,7 @@ async function updateStatus() {
     // Set bot nickname to "69 | STATUS"
     const botMember = guild.members.cache.get(client.user.id);
     if (botMember) {
-      await botMember.setNickname('69 | STATUS');
+      await botMember.setNickname('STATUS');
     }
 
     // Set custom status to "Playing | Online: X"
