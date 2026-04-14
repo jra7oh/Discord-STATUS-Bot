@@ -23,19 +23,22 @@ app.listen(PORT, () => {
   console.log(`Web server running on port ${PORT}`);
 });
 
-// --- Get real online member count ---
+// --- Get stable online member count ---
 async function getOnlineCount() {
   try {
     const guild = client.guilds.cache.first();
     if (!guild) return 0;
 
-    // Always refresh members
-    await guild.members.fetch();
+    // Only fetch if cache is empty (prevents breaking presence)
+    if (guild.members.cache.size === 0) {
+      await guild.members.fetch();
+    }
 
     let onlineCount = 0;
 
     guild.members.cache.forEach((member) => {
       const status = member.presence?.status;
+
       if (status === 'online' || status === 'idle' || status === 'dnd') {
         onlineCount++;
       }
@@ -65,12 +68,12 @@ function updateStatus() {
       ],
       status: 'online',
     });
-  }, 5000);
+  }, 15000); // slower = more stable
 }
 
 client.once('ready', () => {
   console.log(`Logged in as ${client.user.tag}`);
-  setTimeout(updateStatus, 2000);
+  setTimeout(updateStatus, 3000);
 });
 
 client.login(process.env.BOT_TOKEN);
