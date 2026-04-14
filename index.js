@@ -23,17 +23,16 @@ app.listen(PORT, () => {
   console.log(`Web server running on port ${PORT}`);
 });
 
-// --- Get real online member count (including bots) ---
+// --- Get real online member count ---
 async function getOnlineCount() {
   try {
-    const guild = client.guilds.cache.first();
+    const guild = client.guilds.cache.first(); // keep simple
     if (!guild) return 0;
 
-    // ✅ FIX: fetch with presences
     await guild.members.fetch({ withPresences: true });
 
     const onlineCount = guild.members.cache.filter(
-      (member) => member.presence && member.presence.status !== 'offline'
+      (m) => ['online', 'idle', 'dnd'].includes(m.presence?.status)
     ).size;
 
     return onlineCount;
@@ -43,37 +42,20 @@ async function getOnlineCount() {
   }
 }
 
-// --- Update bot status ---
-async function updateStatus() {
-  let toggle = false;
-
+// --- Update bot status (ONLY online count) ---
+function updateStatus() {
   setInterval(async () => {
     const online = await getOnlineCount();
 
-    if (toggle) {
-      await client.user.setPresence({
-        activities: [
-          {
-            name: `Online: ${online} !`,
-            type: 3, // Watching
-          },
-        ],
-        status: 'online',
-      });
-    } else {
-      await client.user.setPresence({
-        activities: [
-          {
-            name: `By Y8LBI !`,
-            type: 1, // Streaming
-            url: 'https://twitch.tv/discord',
-          },
-        ],
-        status: 'online',
-      });
-    }
-
-    toggle = !toggle;
+    await client.user.setPresence({
+      activities: [
+        {
+          name: `Online: ${online} !`,
+          type: 3, // Watching
+        },
+      ],
+      status: 'online',
+    });
   }, 5000);
 }
 
