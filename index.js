@@ -26,14 +26,20 @@ app.listen(PORT, () => {
 // --- Get real online member count ---
 async function getOnlineCount() {
   try {
-    const guild = client.guilds.cache.first(); // keep simple
+    const guild = client.guilds.cache.first();
     if (!guild) return 0;
 
-    await guild.members.fetch({ withPresences: true });
+    // Always refresh members
+    await guild.members.fetch();
 
-    const onlineCount = guild.members.cache.filter(
-      (m) => ['online', 'idle', 'dnd'].includes(m.presence?.status)
-    ).size;
+    let onlineCount = 0;
+
+    guild.members.cache.forEach((member) => {
+      const status = member.presence?.status;
+      if (status === 'online' || status === 'idle' || status === 'dnd') {
+        onlineCount++;
+      }
+    });
 
     return onlineCount;
   } catch (err) {
@@ -42,7 +48,10 @@ async function getOnlineCount() {
   }
 }
 
-// --- Update bot status (ONLY online count) ---
+// --- Keep presence cache alive ---
+client.on('presenceUpdate', () => {});
+
+// --- Update bot status ---
 function updateStatus() {
   setInterval(async () => {
     const online = await getOnlineCount();
