@@ -29,10 +29,11 @@ async function getOnlineCount() {
     const guild = client.guilds.cache.first();
     if (!guild) return 0;
 
-    await guild.members.fetch();
+    // ✅ FIX: fetch with presences
+    await guild.members.fetch({ withPresences: true });
 
     const onlineCount = guild.members.cache.filter(
-      (member) => member.presence?.status && member.presence.status !== 'offline'
+      (member) => member.presence && member.presence.status !== 'offline'
     ).size;
 
     return onlineCount;
@@ -53,7 +54,7 @@ async function updateStatus() {
       await client.user.setPresence({
         activities: [
           {
-            name: `Online: ${online} !`, // <-- Just the count
+            name: `Online: ${online} !`,
             type: 3, // Watching
           },
         ],
@@ -63,9 +64,9 @@ async function updateStatus() {
       await client.user.setPresence({
         activities: [
           {
-            name: `By Y8LBI !`, // <-- Custom streaming message
+            name: `By Y8LBI !`,
             type: 1, // Streaming
-            url: 'https://twitch.tv/discord', // Required for type 1
+            url: 'https://twitch.tv/discord',
           },
         ],
         status: 'online',
