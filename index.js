@@ -62,7 +62,7 @@ function updateStatus() {
     await client.user.setPresence({
       activities: [
         {
-          name: `Online: ${online} !`,
+          name: `Online ${online} `,
           type: 3, // Watching
         },
       ],
