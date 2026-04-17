@@ -7,6 +7,8 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildMessages,   // <-- REQUIRED
+    GatewayIntentBits.MessageContent,  // <-- REQUIRED
   ],
   partials: [Partials.GuildMember],
 });
@@ -29,7 +31,6 @@ async function getOnlineCount() {
     const guild = client.guilds.cache.first();
     if (!guild) return 0;
 
-    // Only fetch if cache is empty (prevents breaking presence)
     if (guild.members.cache.size === 0) {
       await guild.members.fetch();
     }
@@ -63,12 +64,12 @@ function updateStatus() {
       activities: [
         {
           name: `Online ${online} `,
-          type: 3, // Watching
+          type: 3,
         },
       ],
       status: 'online',
     });
-  }, 15000); // slower = more stable
+  }, 15000);
 }
 
 client.once('ready', () => {
@@ -80,21 +81,19 @@ client.once('ready', () => {
 // ADDING !online COMMAND BELOW
 // ------------------------------
 
-const REQUIRED_ROLE = "1437536343176773733"; // your role ID
+const REQUIRED_ROLE = "1437536343176773733";
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
   if (message.content.toLowerCase() === "!online") {
 
-    // --- Role check ---
     if (!message.member.roles.cache.has(REQUIRED_ROLE)) {
       return message.reply("You don't have permission.");
     }
 
     const count = await getOnlineCount();
 
-    // --- Send message normally (NOT a reply) ---
     return message.channel.send(`Online Players **${count}**`);
   }
 });
