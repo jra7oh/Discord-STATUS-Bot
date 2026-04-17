@@ -76,4 +76,27 @@ client.once('ready', () => {
   setTimeout(updateStatus, 3000);
 });
 
+// ------------------------------
+// ADDING !online COMMAND BELOW
+// ------------------------------
+
+const REQUIRED_ROLE = "1437536343176773733"; // your role ID
+
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
+
+  if (message.content.toLowerCase() === "!online") {
+
+    // --- Role check ---
+    if (!message.member.roles.cache.has(REQUIRED_ROLE)) {
+      return message.reply("You don't have permission.");
+    }
+
+    const count = await getOnlineCount();
+
+    // --- Send message normally (NOT a reply) ---
+    return message.channel.send(`Online Players **${count}**`);
+  }
+});
+
 client.login(process.env.BOT_TOKEN);
